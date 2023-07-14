@@ -43,21 +43,48 @@ app.use(
 login(app);
 signUp(app);
 
-app.post('/login', (req, res) => {
-  // Authenticate user and set session data
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
 
-  // Set a cookie to remember the login
-  res.cookie('rememberLogin', true, {
-    maxAge: 30 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
-    httpOnly: false, // Allowing access from JavaScript
-    secure: false, // Not enforcing HTTPS
-    sameSite: 'None', // Allowing cross-site cookies
-  });
-  console.log('Login cookie set:', req.cookies.rememberLogin);
+  try {
+    // Authenticate user and check credentials
+    const user = await User.findOne({ username }); // Assuming you have a User model/schema
 
-  // Redirect or send response
-  // ...
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: 'Incorrect password' });
+    }
+
+    // Set session data for the authenticated user
+    req.session.user = {
+      username: user.username,
+      fullName: user.fullName,
+      // Include any other relevant user data
+    };
+
+    // Set a cookie to remember the login
+    res.cookie('rememberLogin', true, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
+      httpOnly: false, // Allowing access from JavaScript
+      secure: false, // Not enforcing HTTPS
+      sameSite: 'None', // Allowing cross-site cookies
+    });
+
+    console.log('Login cookie set:', req.cookies.rememberLogin);
+
+    res.json({ message: 'Login successful', username: user.username, fullName: user.fullName });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
+
+
 
 app.get('/signup', (req, res) => {
   if (req.session.user) {
