@@ -1,6 +1,3 @@
-const isDevelopment = process.env.NODE_ENV === 'development';
-const apiUrl = isDevelopment ? process.env.REACT_APP_API_URL : 'http://mmcode.io';
-
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -16,7 +13,7 @@ app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'http://www.mmcode.io'],
     methods: ['GET', 'POST'],
     credentials: true,
   })
