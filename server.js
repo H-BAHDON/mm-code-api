@@ -1,13 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const PORT = 3001;
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const login = require('./Routes/login.js');
 const signUp = require('./Routes/signup.js');
 const cookieParser = require('cookie-parser');
+const pgSession = require('connect-pg-simple')(session);
+const db = require('./config/db/db.js');
+
+
+const PORT = process.env.PORT || 3001;
+
 
 app.set('view engine', 'ejs');
 app.use(cookieParser());
@@ -24,12 +29,15 @@ app.use(morgan('dev'));
 
 app.use(
   session({
-    key: 'userID',
-    secret: 'your-secret-key',
+    store: new pgSession({
+      pool: db.pool, // Use your PostgreSQL pool from db.js (assuming you have it)
+      tableName: 'session', // The table name for storing sessions
+    }),
+    secret: 'abcdef123456',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      expires: 60 * 60 * 24,
+      expires: 60 * 60 * 24, // Session expiration time (in seconds)
       sameSite: 'none',
       secure: true,
     },
