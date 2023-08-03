@@ -4,10 +4,12 @@ const cors = require('cors');
 // const sgMail = require('@sendgrid/mail'); // Install @sendgrid/mail package
 
 function login(app) {
-  app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
-  }));
+  app.use(
+    cors({
+      origin: ['http://localhost:3000', 'http://www.mmcode.io'],
+      credentials: true,
+    })
+  );
 
   app.post('/login', async (req, res) => {
     const { username, password } = req.body;
