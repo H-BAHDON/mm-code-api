@@ -6,7 +6,7 @@ const cors = require('cors');
 function login(app) {
   app.use(
     cors({
-      origin: ['http://localhost:3000', 'http://www.mmcode.io'],
+      origin: ['http://localhost:3000', 'https://www.mmcode.io'],
       credentials: true,
     })
   );
