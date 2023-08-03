@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const db = require('../config/db/db');
 const cors = require('cors');
+// const sgMail = require('@sendgrid/mail'); // Install @sendgrid/mail package
 
 function login(app) {
   app.use(cors({
@@ -45,9 +46,43 @@ function login(app) {
       res.status(500).json({ message: 'Internal server error' });
     }
   });
-  
+
+  app.post('/password-reset', async (req, res) => {
+    const { email } = req.body;
+
+    // Generate a password reset token (you can use a library like `crypto` for this)
+    const resetToken = generateResetToken();
+
+    try {
+      // Store the reset token in the database along with the user's email
+      await storeResetTokenInDatabase(email, resetToken);
+
+      // Send the password reset email to the user
+      await sendPasswordResetEmail(email, resetToken);
+
+      res.json({ message: 'Password reset email sent' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+}
+
+// Function to send the password reset email using SendGrid
+// async function sendPasswordResetEmail(email, resetToken) {
+//   sgMail.setApiKey('YOUR_SENDGRID_API_KEY'); // Set your SendGrid API key here
+//   const msg = {
+//     to: email,
+//     from: 'noreply@example.com', // Set your from email address here
+//     subject: 'Password Reset Request',
+//     text: `Click the link to reset your password: http://localhost:3000/reset-password/${resetToken}`,
+//     html: `<p>Click the link to reset your password:</p> <a href="http://localhost:3000/reset-password/${resetToken}">Reset Password</a>`,
+//   };
+//   await sgMail.send(msg);
+// }
+
 
   // Remove the GET /login route, assuming it is not needed anymore
-}
+
 
 module.exports = login;

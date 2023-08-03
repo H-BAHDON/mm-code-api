@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const db = require('../config/db/db');
+const nodemailer = require('nodemailer');
 
 function signup(app) {
   app.post('/signup', async (req, res) => {
@@ -22,6 +23,33 @@ function signup(app) {
       const insertQuery = 'INSERT INTO users (full_name, username, email, password, score) VALUES ($1, $2, $3, $4, $5)';
       const insertValues = [fullName, username, email, hashedPassword, 0]; // Set the initial score to 0
       await db.query(insertQuery, insertValues);
+
+      // Send a welcome email to the user
+      const transporter = nodemailer.createTransport({
+        service: 'YourEmailService', // E.g., Gmail, Outlook, etc.
+        auth: {
+          user: 'your-email@example.com', // Your email address used for sending the email
+          pass: 'your-email-password', // Your email password or an app-specific password if enabled
+        },
+      });
+
+      const mailOptions = {
+        from: 'husseinbahdon1@gmail.com', // Your email address
+        to: email, // User's email address from signup form
+        subject: 'Welcome to our website!', // Subject of the email
+        text: `Hello ${fullName},\n\nThank you for signing up on our website. We are excited to have you with us!\n\nBest regards,\nYour Website Team`, // Plain text body
+        // html: '<h1>Hello world!</h1>' // Use this if you want to send an HTML email
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+          // Handle email sending error
+        } else {
+          console.log('Email sent:', info.response);
+          // Email sent successfully
+        }
+      });
 
       // Create a session for the user
       req.session.user = {
