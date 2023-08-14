@@ -1,18 +1,14 @@
-const isDevelopment = process.env.NODE_ENV === 'development';
-const apiUrl = isDevelopment ? process.env.REACT_APP_API_URL : 'http://mmcode.io';
-
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const PORT = 3001;
+const PORT = 3001; // Updated port to 3000
 const session = require('express-session');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
-const login = require('./Routes/login.js');
-const signUp = require('./Routes/signup.js');
-const cookieParser = require('cookie-parser');
+const passport = require('passport');
 
-app.set('view engine', 'ejs');
+require('./Auth/auth.js'); 
+require('dotenv').config();
+
+const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 app.use(
   cors({
@@ -21,109 +17,122 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
 
-app.use(
-  session({
-    key: 'userID',
-    secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      expires: 60 * 60 * 24,
-      sameSite: 'none',
-      secure: true,
-    },
+app.use(express.json());
+app.set('trust proxy', 1); // Add this line to trust first proxy
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Define routes
+app.get('/', (req, res) => {
+  res.send('<a href="/auth/google">Authenticate with Google</a> ');
+  
+});
+
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['email', 'profile'] })
+);
+
+app.get('/google/callback',
+  passport.authenticate('google', {
+    successRedirect: `${process.env.Client_SIDE_BASE_URL}/platform`,
+    failureRedirect: '/auth/google/failure'
   })
 );
 
-// Route for testing server status
-login(app);
-signUp(app);
+app.get('/auth/google/failure', isLoggedIn, (req, res) => {
+  res.send(`something went wrong`);
+});
 
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    // Authenticate user and check credentials
-    const user = await User.findOne({ username }); // Assuming you have a User model/schema
-
+app.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', (err, user) => {
+    if (err) {
+      return next(err);
+    }
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.redirect('/auth/google/failure');
     }
-
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatch) {
-      return res.status(401).json({ message: 'Incorrect password' });
-    }
-
-    // Set session data for the authenticated user
     req.session.user = {
-      username: user.username,
-      fullName: user.fullName,
-      // Include any other relevant user data
+      displayName: user.displayName,
+      email: user.email,
     };
-
-    // Set a cookie to remember the login
-    res.cookie('rememberLogin', true, {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
-      httpOnly: false, // Allowing access from JavaScript
-      secure: false, // Not enforcing HTTPS
-      sameSite: 'None', // Allowing cross-site cookies
-    });
-
-    console.log('Login cookie set:', req.cookies.rememberLogin);
-
-    res.json({ message: 'Login successful', username: user.username, fullName: user.fullName });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+    res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
+  })(req, res, next);
 });
 
-
-
-app.get('/signup', (req, res) => {
-  if (req.session.user) {
-    console.log('Logged in user:', req.session.user.username);
-    return res.redirect('/platform');
-  }
-
-  // Process the signup form and create a new user
-
-  // Set the session data for the newly signed up user
-  const newUser = {
-    username: 'newUser',
-    fullName: 'New User',
-    // Include any other relevant user data
-  };
-  req.session.user = newUser;
-
-  // Redirect to the platform page or any other desired route
-  res.redirect('/platform');
-});
 app.get('/platform', (req, res) => {
-  if (req.session.user || hasRememberLoginCookie()) {
-    console.log('Logged in user:', req.session.user.username);
-   
-    res.render('platform'); 
+ 
+    req.session.randomValue = Math.random();
+
+    // Access stored random value
+    const storedRandomValue = req.session.randomValue;
+    console.log(`Stored random value: ${storedRandomValue}`);
+
+    console.log(`Logged in user: ${req.user.displayName}`);
+    res.send('Welcome to the platform');
+ 
+});
+
+app.get('/user', (req, res) => {
+  if (req.isAuthenticated()) {
+    const userData = {
+      displayName: req.user.displayName,
+      email: req.user.email,
+    };
+    req.session.userData = userData;
+
+    res.json(userData);
   } else {
-    res.redirect('/login');
+    res.status(401).json({ error: 'Not authenticated' });
   }
 });
 
-app.get('/checklogin', (req, res) => {
-  if (req.session.user) {
-    const { username } = req.session.user;
-    res.json({ loggedIn: true, username });
+
+app.get('/protected', isLoggedIn, (req, res) => {
+  res.send(`
+    <p>Hello ${req.user.displayName}</p>
+    <form action="/logout" method="post">
+    <button type="submit">Logout</button>
+  </form>
+  
+  `);
+});
+app.get('/logout', (req, res) => {
+  // Clear the session by logging the user out
+  req.logout((err) => {
+    if (err) {
+      console.error("Error logging out:", err);
+      // Handle the error if needed
+    }
+
+    // Clear the authentication cookie (connect.sid)
+    res.clearCookie('connect.sid');
+
+    // Redirect to the home page or another appropriate page
+    res.redirect('/');
+  });
+});
+// Server-side code
+app.get('/check-session', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.sendStatus(200); // Session cookie exists
   } else {
-    res.json({ loggedIn: false });
+    res.sendStatus(401); // Session cookie does not exist
   }
 });
 
+// Middleware to check if the user is authenticated
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.sendStatus(401);
+}
+
+// Listen on port 3000
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
+
