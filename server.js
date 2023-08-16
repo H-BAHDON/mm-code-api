@@ -20,7 +20,7 @@ app.use(
 app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
 
 app.use(express.json());
-app.set('trust proxy', 1); // Add this line to trust first proxy
+app.set('trust proxy', 1); 
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -63,10 +63,7 @@ app.get('/google/callback', (req, res, next) => {
 });
 
 app.get('/platform', (req, res) => {
- 
     req.session.randomValue = Math.random();
-
-    // Access stored random value
     const storedRandomValue = req.session.randomValue;
     console.log(`Stored random value: ${storedRandomValue}`);
 
@@ -100,30 +97,24 @@ app.get('/protected', isLoggedIn, (req, res) => {
   `);
 });
 app.get('/logout', (req, res) => {
-  // Clear the session by logging the user out
   req.logout((err) => {
     if (err) {
       console.error("Error logging out:", err);
-      // Handle the error if needed
     }
 
-    // Clear the authentication cookie (connect.sid)
     res.clearCookie('connect.sid');
 
-    // Redirect to the home page or another appropriate page
     res.redirect('/');
   });
 });
-// Server-side code
 app.get('/check-session', (req, res) => {
   if (req.isAuthenticated()) {
-    res.sendStatus(200); // Session cookie exists
+    res.sendStatus(200); 
   } else {
-    res.sendStatus(401); // Session cookie does not exist
+    res.sendStatus(401); 
   }
 });
 
-// Middleware to check if the user is authenticated
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
@@ -131,7 +122,9 @@ function isLoggedIn(req, res, next) {
   res.sendStatus(401);
 }
 
-// Listen on port 3000
+
+
+
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
