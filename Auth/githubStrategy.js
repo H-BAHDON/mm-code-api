@@ -8,23 +8,45 @@ const githubStrategy = new GitHubStrategy({
     clientID: GITHUB_CLIENT_ID,
     clientSecret: GITHUB_CLIENT_SECRET,
     callbackURL: "http://localhost:3001/auth/github/callback",
-    scope: [ 'user:email' ],
+    scope: ['user:email'],
   },
-  async function(accessToken, refreshToken, profile, done) {
+  async function (accessToken, refreshToken, profile, done) {
     try {
-        const githubId = profile.id;
-        const username = profile.username; 
-        const email = profile.email;
-        
-        const user =  githubId + username + email;
-        
-        // Call the 'done' callback with the user object or any other necessary data.
-        done(null, user);
+      const githubId = profile.id.toString(); // Convert to string
+      const username = profile.username;
+      const email = profile.email;
+      const accountProvider = "GitHub"; // Specify the account provider
+
+      // Create the SQL query for inserting or updating the user
+      const query = `
+        INSERT INTO users (full_name, email, accounts, daily_score, total_score, total_time, daily_time, mm_completed)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (email) DO UPDATE
+        SET full_name = EXCLUDED.full_name, accounts = $3
+        RETURNING *;`;
+
+      // Execute the query with parameters
+      const result = await db.query(query, [
+        username,
+        email,
+        accountProvider,
+        0, // Initial values
+        0,
+        0,
+        0,
+        false,
+      ]);
+
+      // Get the saved or updated user from the query result
+      const savedUser = result.rows[0];
+
+      // Call the 'done' callback with the user object or any other necessary data.
+      done(null, savedUser);
     } catch (error) {
-        // Handle errors and call 'done' with the error if needed.
-        done(error);
+      // Handle errors and call 'done' with the error if needed.
+      done(error);
     }
-}
+  }
 );
 
 module.exports = githubStrategy;
