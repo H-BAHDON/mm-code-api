@@ -37,9 +37,10 @@ app.use(
   })
 );
 
-app.get('/auth/google/failure', isLoggedIn, (req, res) => {
-  res.send(`something went wrong`);
-});
+app.get('/auth/google',
+  passport.authenticate('google', { scope:
+      [ 'email', 'profile' ] }
+));
 
 app.get('/google/callback', (req, res, next) => {
   passport.authenticate('google', (err, user) => {
@@ -56,6 +57,13 @@ app.get('/google/callback', (req, res, next) => {
     res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
   })(req, res, next);
 });
+
+app.get('/auth/google/failure', isLoggedIn, (req, res) => {
+  res.send(`something went wrong`);
+});
+
+
+
 
 app.get('/platform', (req, res) => {
     req.session.randomValue = Math.random();
