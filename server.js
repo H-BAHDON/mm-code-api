@@ -66,9 +66,6 @@ app.get('/auth/google/failure', isLoggedIn, (req, res) => {
   res.send(`something went wrong`);
 });
 
-
-
-
 app.get('/platform', (req, res) => {
     req.session.randomValue = Math.random();
     const storedRandomValue = req.session.randomValue;
