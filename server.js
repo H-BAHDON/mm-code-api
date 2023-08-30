@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const PORT = 3001; // Updated port to 3000
+const PORT = process.env.PORT || 3001;
 const session = require('express-session');
 const passport = require('passport');
 
@@ -12,11 +12,12 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'https://www.mmcode.io'],
     methods: ['GET', 'POST'],
     credentials: true,
   })
 );
+
 app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
 
 app.use(express.json());
