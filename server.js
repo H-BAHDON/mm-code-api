@@ -9,6 +9,8 @@ require('./Auth/auth.js');
 require('dotenv').config();
 
 const cookieParser = require('cookie-parser');
+
+app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(
   cors({
@@ -21,27 +23,20 @@ app.use(
 app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
 
 app.use(express.json());
-app.set('trust proxy', 1); 
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-
-
-// Define routes
-app.get('/', (req, res) => {
-  res.send('<a href="/auth/google">Authenticate with Google</a> ');
-  
-});
-
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['email', 'profile'] })
-);
-
-app.get('/google/callback',
-  passport.authenticate('google', {
-    successRedirect: `${process.env.Client_SIDE_BASE_URL}/platform`,
-    failureRedirect: '/auth/google/failure'
+app.use(
+  session({
+    key: 'userID',
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      expires: 60 * 60 * 24,
+      sameSite: 'none',
+      secure: true,
+    },
   })
 );
 
