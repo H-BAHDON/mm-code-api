@@ -7,7 +7,7 @@ const GOOGLE_CLIENT_SECRET = "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";
 const googleStrategy = new GoogleStrategy({
   clientID: GOOGLE_CLIENT_ID,
   clientSecret: GOOGLE_CLIENT_SECRET,
-  callbackURL: "http://localhost:3001/google/callback",
+  callbackURL: `${process.env.REACT_APP_API_URL}/google/callback`,
   passReqToCallback: true,
 },function(request, accessToken, refreshToken, profile, done) {
     // This function is executed when a user is authenticated with Google
