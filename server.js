@@ -1,18 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const session = require('express-session');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
-const login = require('./Routes/login.js');
-const signUp = require('./Routes/signup.js');
-const cookieParser = require('cookie-parser');
-const pgSession = require('connect-pg-simple')(session);
-const db = require('./config/db/db.js');
-
-
 const PORT = process.env.PORT || 3001;
+const session = require('express-session');
+const passport = require('passport');
 
+require('./Auth/auth.js'); 
+require('dotenv').config();
+
+const cookieParser = require('cookie-parser');
 
 app.set('view engine', 'ejs');
 app.use(cookieParser());
@@ -23,112 +19,143 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
+
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
 app.use(
   session({
-    store: new pgSession({
-      pool: db.pool, // Use your PostgreSQL pool from db.js (assuming you have it)
-      tableName: 'session', // The table name for storing sessions
-    }),
-    secret: 'abcdef123456',
+    key: 'userID',
+    secret: 'your-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      expires: 60 * 60 * 24, // Session expiration time (in seconds)
+      expires: 60 * 60 * 24,
       sameSite: 'none',
       secure: true,
     },
   })
 );
 
-// Route for testing server status
-login(app);
-signUp(app);
+app.get('/auth/google/failure', isLoggedIn, (req, res) => {
+  res.send(`something went wrong`);
+});
 
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    // Authenticate user and check credentials
-    const user = await User.findOne({ username }); // Assuming you have a User model/schema
-
+app.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', (err, user) => {
+    if (err) {
+      return next(err);
+    }
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.redirect('/auth/google/failure');
     }
-
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatch) {
-      return res.status(401).json({ message: 'Incorrect password' });
-    }
-
-    // Set session data for the authenticated user
     req.session.user = {
-      username: user.username,
-      fullName: user.fullName,
-      // Include any other relevant user data
+      displayName: user.displayName,
+      email: user.email,
     };
-
-    // Set a cookie to remember the login
-    res.cookie('rememberLogin', true, {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // Cookie expiration time (30 days)
-      httpOnly: false, // Allowing access from JavaScript
-      secure: false, // Not enforcing HTTPS
-      sameSite: 'None', // Allowing cross-site cookies
-    });
-
-    console.log('Login cookie set:', req.cookies.rememberLogin);
-
-    res.json({ message: 'Login successful', username: user.username, fullName: user.fullName });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+    res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
+  })(req, res, next);
 });
 
-
-
-app.get('/signup', (req, res) => {
-  if (req.session.user) {
-    console.log('Logged in user:', req.session.user.username);
-    return res.redirect('/platform');
-  }
-
-  // Process the signup form and create a new user
-
-  // Set the session data for the newly signed up user
-  const newUser = {
-    username: 'newUser',
-    fullName: 'New User',
-    // Include any other relevant user data
-  };
-  req.session.user = newUser;
-
-  // Redirect to the platform page or any other desired route
-  res.redirect('/platform');
-});
 app.get('/platform', (req, res) => {
-  if (req.session.user || hasRememberLoginCookie()) {
-    console.log('Logged in user:', req.session.user.username);
-   
-    res.render('platform'); 
+    req.session.randomValue = Math.random();
+    const storedRandomValue = req.session.randomValue;
+    console.log(`Stored random value: ${storedRandomValue}`);
+
+    console.log(`Logged in user: ${req.user.displayName}`);
+    res.send('Welcome to the platform');
+ 
+});
+
+app.get('/user', (req, res) => {
+  if (req.isAuthenticated()) {
+    const userData = {
+      displayName: req.user.displayName,
+      email: req.user.email,
+    };
+    req.session.userData = userData;
+
+    res.json(userData);
   } else {
-    res.redirect('/login');
+    res.status(401).json({ error: 'Not authenticated' });
   }
 });
 
-app.get('/checklogin', (req, res) => {
-  if (req.session.user) {
-    const { username } = req.session.user;
-    res.json({ loggedIn: true, username });
+
+app.get('/protected', isLoggedIn, (req, res) => {
+  res.send(`
+    <p>Hello ${req.user.displayName}</p>
+    <form action="/logout" method="post">
+    <button type="submit">Logout</button>
+  </form>
+  
+  `);
+});
+app.get('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error("Error logging out:", err);
+    }
+
+    res.clearCookie('connect.sid');
+
+    res.redirect('/');
+  });
+});
+app.get('/check-session', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.sendStatus(200); 
   } else {
-    res.json({ loggedIn: false });
+    res.sendStatus(401); 
   }
 });
+
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.sendStatus(401);
+}
+
+
+
+
+// -----------------------------------------
+
+app.get('/auth/github',
+  passport.authenticate('github', { scope: [ 'user:email' ] }));
+
+  app.get('/auth/github/callback', 
+  passport.authenticate('github', { failureRedirect: '/login' }),
+  function(req, res) {
+    console.log("GitHub authentication successful:", req.user);
+    res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
+  });
+
+
+  app.get('/github/user'), (res, req) => {
+    if (req.isAuthenticated()) {
+      const userData = {
+        displayName: req.user.displayName,
+        email: req.user.email,
+      };
+      req.session.userData = userData;
+  
+      res.json(userData);
+    } else {
+      res.status(401).json({ error: 'Not authenticated' });
+    }
+  }
+
 
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
+
+
+
+// --------------------------------------------------
+
