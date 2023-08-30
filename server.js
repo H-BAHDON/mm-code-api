@@ -42,9 +42,8 @@ app.get('/', (req, res) => {
   res.send('Server is up and running!');
 });
 app.get('/auth/google',
-  passport.authenticate('google', { scope:
-      [ 'email', 'profile' ] }
-));
+  passport.authenticate('google', { scope: ['email', 'profile'] })
+);
 
 app.get('/google/callback', (req, res, next) => {
   passport.authenticate('google', (err, user) => {
