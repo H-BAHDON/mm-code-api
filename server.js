@@ -25,6 +25,8 @@ app.set('trust proxy', 1);
 app.use(passport.initialize());
 app.use(passport.session());
 
+
+
 // Define routes
 app.get('/', (req, res) => {
   res.send('<a href="/auth/google">Authenticate with Google</a> ');
@@ -125,7 +127,39 @@ function isLoggedIn(req, res, next) {
 
 
 
+// -----------------------------------------
+
+app.get('/auth/github',
+  passport.authenticate('github', { scope: [ 'user:email' ] }));
+
+  app.get('/auth/github/callback', 
+  passport.authenticate('github', { failureRedirect: '/login' }),
+  function(req, res) {
+    console.log("GitHub authentication successful:", req.user);
+    res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
+  });
+
+
+  app.get('/github/user'), (res, req) => {
+    if (req.isAuthenticated()) {
+      const userData = {
+        displayName: req.user.displayName,
+        email: req.user.email,
+      };
+      req.session.userData = userData;
+  
+      res.json(userData);
+    } else {
+      res.status(401).json({ error: 'Not authenticated' });
+    }
+  }
+
+
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
+
+
+
+// --------------------------------------------------
 
