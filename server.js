@@ -18,7 +18,7 @@ app.use(
   cors({
     origin: ['http://localhost:3000', 'https://www.mmcode.io'],
     methods: ['GET', 'POST'],
-    credentials: true,
+    credentials: false,
   })
 );
 app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
