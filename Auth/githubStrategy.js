@@ -7,7 +7,7 @@ const GITHUB_CLIENT_SECRET = "417c54c316a47b3ead02087f71bce99b75c856bf";
 const githubStrategy = new GitHubStrategy({
     clientID: GITHUB_CLIENT_ID,
     clientSecret: GITHUB_CLIENT_SECRET,
-    callbackURL: `${process.env.REACT_APP_API_URL}/auth/github/callback`,
+    callbackURL: `https://mm-code-api-b4f2aff44087.herokuapp.com/auth/github/callback`,
     scope: ['user:email'],
   },
   async function (accessToken, refreshToken, profile, done) {
