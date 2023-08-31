@@ -8,8 +8,7 @@ const session = require('express-session');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan'); // Import morgan
-const githubStrategy = require('./Auth/githubStrategy'); // Adjust the path accordingly
-const googleStrategy = require('./auth/googleStrategy'); // Adjust the path accordingly
+
 
 require('dotenv').config();
 require('./Auth/auth'); 
@@ -29,9 +28,6 @@ app.use(
 app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
 app.use(passport.initialize());
 
-
-passport.use('github', githubStrategy);
-passport.use('google', googleStrategy);
 
 app.use(morgan('dev'));
 app.use(
