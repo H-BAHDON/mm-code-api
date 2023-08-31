@@ -26,7 +26,6 @@ app.use(
 );
 
 app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
-app.use(passport.initialize());
 
 
 app.use(morgan('dev'));
@@ -36,7 +35,6 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      key: 'userID',
       expires: 60 * 60 * 24,
       sameSite: 'none',
       secure: true,
@@ -44,6 +42,7 @@ app.use(
   })
 );
 
+app.use(passport.initialize());
 
 app.get('/', (req, res) => {
   res.send('Server is up and running!');
@@ -96,26 +95,25 @@ app.get('/logout', (req, res) => {
 });
 
 
-function isAuthenticated(req, res, next) {
+app.get('/user', (req, res) => {
   if (req.isAuthenticated()) {
-    return next(); 
+    const userData = {
+      displayName: req.user.displayName,
+      email: req.user.email,
+    };
+    req.session.userData = userData;
+    res.json(userData);
   } else {
-    res.status(401).json({ error: 'Not authenticated' }); 
+    res.status(401).json({ error: 'Not authenticated' });
   }
-}
-
-// Apply isAuthenticated middleware to routes
-app.get('/user', isAuthenticated, (req, res) => {
-  const userData = {
-    displayName: req.user.displayName,
-    email: req.user.email,
-  };
-  req.session.userData = userData;
-  res.json(userData);
 });
 
-app.get('/check-session', isAuthenticated, (req, res) => {
-  res.sendStatus(200);
+app.get('/check-session', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.sendStatus(200); 
+  } else {
+    res.sendStatus(401); 
+  }
 });
 
 
