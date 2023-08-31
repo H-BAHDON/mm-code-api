@@ -91,25 +91,26 @@ app.get('/logout', (req, res) => {
 });
 
 
-app.get('/user', (req, res) => {
+function isAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-    const userData = {
-      displayName: req.session.passport.user.displayName,
-      email: req.session.passport.user.email,
-    };
-    req.session.userData = userData;
-    res.json(userData);
+    return next(); 
   } else {
-    res.status(401).json({ error: 'Not authenticated' });
+    res.status(401).json({ error: 'Not authenticated' }); 
   }
+}
+
+// Apply isAuthenticated middleware to routes
+app.get('/user', isAuthenticated, (req, res) => {
+  const userData = {
+    displayName: req.user.displayName,
+    email: req.user.email,
+  };
+  req.session.userData = userData;
+  res.json(userData);
 });
 
-app.get('/check-session', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.sendStatus(200); 
-  } else {
-    res.sendStatus(401); 
-  }
+app.get('/check-session', isAuthenticated, (req, res) => {
+  res.sendStatus(200);
 });
 
 
