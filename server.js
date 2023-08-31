@@ -1,5 +1,3 @@
-
-
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -9,7 +7,6 @@ const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan'); // Import morgan
 
-
 require('dotenv').config();
 require('./Auth/auth'); 
 
@@ -17,6 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(cookieParser());
+
 app.use(
   cors({
     origin: ['http://localhost:3000', 'https://www.mmcode.io'],
@@ -25,24 +23,23 @@ app.use(
   })
 );
 
-app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
-
-
-app.use(morgan('dev'));
 app.use(
   session({
-    secret: 'abcdef123456',
+    secret: 'mm-code',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
-      expires: 60 * 60 * 24,
-      sameSite: 'none',
+      httpOnly: true,
       secure: true,
+      maxAge: 60 * 60 * 24 * 1000, // 1 day
     },
   })
 );
 
 app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(morgan('dev'));
 
 app.get('/', (req, res) => {
   res.send('Server is up and running!');
@@ -95,24 +92,23 @@ app.get('/logout', (req, res) => {
 });
 
 
+app.get('/check-session', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.sendStatus(200); 
+  } else {
+    res.sendStatus(401); 
+  }
+});
+
 app.get('/user', (req, res) => {
   if (req.isAuthenticated()) {
     const userData = {
       displayName: req.user.displayName,
       email: req.user.email,
     };
-    req.session.userData = userData;
     res.json(userData);
   } else {
     res.status(401).json({ error: 'Not authenticated' });
-  }
-});
-
-app.get('/check-session', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.sendStatus(200); 
-  } else {
-    res.sendStatus(401); 
   }
 });
 
