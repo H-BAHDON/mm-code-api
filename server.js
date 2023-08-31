@@ -1,5 +1,4 @@
-require('./Auth/auth.js'); 
-require('dotenv').config();
+
 
 const express = require('express');
 const cors = require('cors');
@@ -9,6 +8,9 @@ const session = require('express-session');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan'); // Import morgan
+
+require('dotenv').config();
+require('./Auth/auth.js'); 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -141,7 +143,7 @@ app.get('/auth/github',
   });
 
 
-  app.get('/github/user'), (res, req) => {
+  app.get('/github/user', (req, res) => {
     if (req.isAuthenticated()) {
       const userData = {
         displayName: req.user.displayName,
@@ -153,7 +155,8 @@ app.get('/auth/github',
     } else {
       res.status(401).json({ error: 'Not authenticated' });
     }
-  }
+  });
+  
 
 
 app.listen(PORT, () => {
