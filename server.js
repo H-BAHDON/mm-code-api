@@ -6,6 +6,7 @@ const session = require('express-session');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan'); // Import morgan
+const bodyParser = require('body-parser');
 
 require('dotenv').config();
 require('./Auth/auth'); 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(cookieParser());
+app.use(bodyParser.json());
 
 app.use(
   cors({
