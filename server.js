@@ -77,17 +77,38 @@ app.get('/platform', (req, res) => {
  
 });
 
+
+app.get('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error("Error logging out:", err);
+    }
+
+    res.clearCookie('connect.sid');
+
+    res.redirect('/');
+  });
+});
+
+
 app.get('/user', (req, res) => {
   if (req.isAuthenticated()) {
     const userData = {
-      displayName: req.user.displayName,
-      email: req.user.email,
+      displayName: req.session.passport.user.displayName,
+      email: req.session.passport.user.email,
     };
     req.session.userData = userData;
-
     res.json(userData);
   } else {
     res.status(401).json({ error: 'Not authenticated' });
+  }
+});
+
+app.get('/check-session', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.sendStatus(200); 
+  } else {
+    res.sendStatus(401); 
   }
 });
 
@@ -101,24 +122,7 @@ app.get('/protected', isLoggedIn, (req, res) => {
   
   `);
 });
-app.get('/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      console.error("Error logging out:", err);
-    }
 
-    res.clearCookie('connect.sid');
-
-    res.redirect('/');
-  });
-});
-app.get('/check-session', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.sendStatus(200); 
-  } else {
-    res.sendStatus(401); 
-  }
-});
 
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) {
