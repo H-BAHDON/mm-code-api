@@ -15,7 +15,7 @@ app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'http://localhost:3000', // Replace with the origin of your frontend app
+    origin: 'https://www.mmcode.io', // Replace with the origin of your frontend app
     methods: ['GET', 'POST'],
     credentials: true, // Allow credentials (cookies)
   })
