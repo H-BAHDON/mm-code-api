@@ -96,20 +96,24 @@ app.get('/logout', (req, res) => {
 
 app.get('/check-session', (req, res) => {
   if (req.isAuthenticated()) {
-    res.sendStatus(200); 
+    console.log("User is authenticated");
+    res.sendStatus(200);
   } else {
-    res.sendStatus(401); 
+    console.log("User is not authenticated");
+    res.sendStatus(401);
   }
 });
 
 app.get('/user', (req, res) => {
   if (req.isAuthenticated()) {
+    console.log("User is authenticated");
     const userData = {
       displayName: req.user.displayName,
       email: req.user.email,
     };
     res.json(userData);
   } else {
+    console.log("User is not authenticated");
     res.status(401).json({ error: 'Not authenticated' });
   }
 });
