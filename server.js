@@ -4,72 +4,61 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const session = require('express-session');
 const passport = require('passport');
-const cookieParser = require('cookie-parser');
-const morgan = require('morgan'); // Import morgan
 const bodyParser = require('body-parser');
-
+const morgan = require('morgan'); // Import morgan
+require('./Auth/auth.js'); 
 require('dotenv').config();
-require('./Auth/auth'); 
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const cookieParser = require('cookie-parser');
+
 app.set('view engine', 'ejs');
 app.use(cookieParser());
-app.use(bodyParser.json());
-
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'https://www.mmcode.io'],
+    origin: 'http://localhost:3000', // Replace with the origin of your frontend app
     methods: ['GET', 'POST'],
-    credentials: true,
+    credentials: true, // Allow credentials (cookies)
   })
 );
+
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(morgan('dev'));
+app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
 
 app.use(
   session({
-    secret: 'mm-code',
+    key: 'userID',
+    secret: 'your-secret-key',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      httpOnly: true,
+      expires: 60 * 60 * 24,
+      sameSite: 'none',
       secure: true,
-      maxAge: 60 * 60 * 24 * 1000, // 1 day
     },
   })
 );
-
+app.set('trust proxy', 1);
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(morgan('dev'));
 
-app.get('/', (req, res) => {
-  res.send('Server is up and running!');
-});
+
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['email', 'profile'] })
 );
 
-app.get('/google/callback', (req, res, next) => {
-  passport.authenticate('google', (err, user) => {
-    if (err) {
-      return next(err);
-    }
-    if (!user) {
-      return res.redirect('/auth/google/failure');
-    }
-    req.session.user = {
-      displayName: user.displayName,
-      email: user.email,
-    };
-    res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
-  })(req, res, next);
-});
+app.get('/google/callback',
+  passport.authenticate('google', {
+    successRedirect: `${process.env.Client_SIDE_BASE_URL}/platform`,
+    failureRedirect: '/auth/google/failure'
+  })
+);
 
 app.get('/auth/google/failure', isLoggedIn, (req, res) => {
   res.send(`something went wrong`);
 });
-
 app.get('/platform', (req, res) => {
     req.session.randomValue = Math.random();
     const storedRandomValue = req.session.randomValue;
@@ -80,40 +69,16 @@ app.get('/platform', (req, res) => {
  
 });
 
-
-app.get('/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      console.error("Error logging out:", err);
-    }
-
-    res.clearCookie('connect.sid');
-
-    res.redirect('/');
-  });
-});
-
-
-app.get('/check-session', (req, res) => {
-  if (req.isAuthenticated()) {
-    console.log("User is authenticated");
-    res.sendStatus(200);
-  } else {
-    console.log("User is not authenticated");
-    res.sendStatus(401);
-  }
-});
-
 app.get('/user', (req, res) => {
   if (req.isAuthenticated()) {
-    console.log("User is authenticated");
     const userData = {
       displayName: req.user.displayName,
       email: req.user.email,
     };
+    req.session.userData = userData;
+
     res.json(userData);
   } else {
-    console.log("User is not authenticated");
     res.status(401).json({ error: 'Not authenticated' });
   }
 });
@@ -128,7 +93,22 @@ app.get('/protected', isLoggedIn, (req, res) => {
   
   `);
 });
-
+app.get('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error("Error logging out:", err);
+    }
+    res.clearCookie('connect.sid');
+    res.redirect(`${process.env.Client_SIDE_BASE_URL}/login`);
+  });
+});
+app.get('/check-session', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.sendStatus(200); 
+  } else {
+    res.sendStatus(401); 
+  }
+});
 
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) {
@@ -153,7 +133,7 @@ app.get('/auth/github',
   });
 
 
-  app.get('/github/user', (req, res) => {
+  app.get('/github/user'), (res, req) => {
     if (req.isAuthenticated()) {
       const userData = {
         displayName: req.user.displayName,
@@ -165,8 +145,7 @@ app.get('/auth/github',
     } else {
       res.status(401).json({ error: 'Not authenticated' });
     }
-  });
-  
+  }
 
 
 app.listen(PORT, () => {
@@ -176,4 +155,3 @@ app.listen(PORT, () => {
 
 
 // --------------------------------------------------
-
