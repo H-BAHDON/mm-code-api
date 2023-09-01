@@ -27,18 +27,14 @@ app.use(morgan('dev'));
 app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
 
 app.use(
-  session({
-    key: 'userID',
-    secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      expires: 60 * 60 * 24,
-      sameSite: 'none',
-      secure: true,
-    },
-  })
+	cookieSession({
+		name: "mm-code",
+		keys: ["genny"],
+		maxAge: 24 * 60 * 60 * 100, 
+	})
 );
+
+
 app.set('trust proxy', 1);
 app.use(passport.initialize());
 app.use(passport.session());
