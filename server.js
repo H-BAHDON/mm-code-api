@@ -32,6 +32,8 @@ app.use(
 		name: "session",
 		keys: ["genny"],
 		maxAge: 24 * 60 * 60 * 100, 
+    sameSite : 'none',
+    secure : true
 	})
 );
 app.set('trust proxy', 1);
