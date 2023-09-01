@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 3001;
 const session = require('express-session');
 const passport = require('passport');
 const bodyParser = require('body-parser');
-const morgan = require('morgan'); // Import morgan
+const morgan = require('morgan'); 
 require('./Auth/auth.js'); 
 require('dotenv').config();
 
@@ -15,9 +15,9 @@ app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'https://www.mmcode.io', // Replace with the origin of your frontend app
+    origin: 'https://www.mmcode.io', 
     methods: ['GET', 'POST'],
-    credentials: true, // Allow credentials (cookies)
+    credentials: true, 
   })
 );
 
@@ -102,12 +102,20 @@ app.get('/logout', (req, res) => {
     res.redirect(`${process.env.Client_SIDE_BASE_URL}/login`);
   });
 });
+
+
 app.get('/check-session', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.sendStatus(200); 
-  } else {
-    res.sendStatus(401); 
-  }
+  try {
+
+    if (req.isAuthenticated()) {
+      res.sendStatus(200); 
+    } else {
+      res.sendStatus(401); 
+    }
+
+  } catch (e) {
+    return res.status(500).json({ msg: "Error found" })
+  } 
 });
 
 function isLoggedIn(req, res, next) {
