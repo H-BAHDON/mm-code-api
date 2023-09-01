@@ -6,6 +6,8 @@ const session = require('express-session');
 const passport = require('passport');
 const bodyParser = require('body-parser');
 const morgan = require('morgan'); 
+const cookieSession = require("cookie-session");
+
 require('./Auth/auth.js'); 
 require('dotenv').config();
 
