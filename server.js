@@ -7,7 +7,6 @@ const passport = require('passport');
 const bodyParser = require('body-parser');
 const morgan = require('morgan'); 
 const cookieSession = require("cookie-session");
-
 require('./Auth/auth.js'); 
 require('dotenv').config();
 
@@ -26,17 +25,15 @@ app.use(
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
+// app.use(session({ secret: 'mm-code', resave: false, saveUninitialized: true }));
 
 app.use(
 	cookieSession({
-		name: "mm-code",
+		name: "session",
 		keys: ["genny"],
 		maxAge: 24 * 60 * 60 * 100, 
 	})
 );
-
-
 app.set('trust proxy', 1);
 app.use(passport.initialize());
 app.use(passport.session());
