@@ -91,13 +91,8 @@ app.get('/protected', isLoggedIn, (req, res) => {
   `);
 });
 app.get('/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      console.error("Error logging out:", err);
-    }
-    res.clearCookie('connect.sid');
-    res.redirect(`${process.env.Client_SIDE_BASE_URL}/login`);
-  });
+  req.logout();
+  res.status(200).json({ success : true });
 });
 
 
