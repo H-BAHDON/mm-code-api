@@ -1,0 +1,29 @@
+const passport = require('passport');
+
+export function githubAuth(req, res) {
+    passport.authenticate('github', {scope: ['user:email']})(req, res);
+}
+
+export function githubCallback(req, res, next) {
+    passport.authenticate('github', {failureRedirect: '/login'})(req, res, next);
+}
+
+export function githubSuccess(req, res) {
+    console.log("GitHub authentication successful:", req.user);
+    res.redirect(`${
+        process.env.Client_SIDE_BASE_URL
+    }/platform`);
+}
+
+export function getGitHubUser(req, res) {
+    if (req.isAuthenticated()) {
+        const userData = {
+            displayName: req.user.displayName,
+            email: req.user.email
+        };
+        req.session.userData = userData;
+        res.json(userData);
+    } else {
+        res.status(401).json({error: 'Not authenticated'});
+    }
+}
