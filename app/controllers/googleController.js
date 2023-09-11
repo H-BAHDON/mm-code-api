@@ -1,19 +1,26 @@
-import passport from "passport";
+const passport = require("passport");
 
-export function googleAuth (req, res) {
-    passport.authenticate('google', {scope: ['email', 'profile']}(req, res) )
+// Google OAuth authentication
+function googleAuth(req, res) {
+  passport.authenticate('google', { scope: ['email', 'profile'] })(req, res);
 }
 
-
-export function googleCallback(req, res, next) {
-    passport.authenticate('google', {
-        successRedirect: `${process.env.Client_SIDE_BASE_URL}/platform`,
-        failureRedirect: '/auth/google/failure'
-    })
+// Callback after Google OAuth authentication
+function googleCallback(req, res, next) {
+  passport.authenticate('google', {
+    successRedirect: `${process.env.Client_SIDE_BASE_URL}/platform`,
+    failureRedirect: '/auth/google/failure'
+  })(req, res, next);
 }
 
-export function googleFailure(req, res) {
-    res.redirect(`${process.env.Client_SIDE_BASE_URL}/login`);
-    res.send(`something went wrong`);
+// Failure route
+function googleFailure(req, res) {
+  res.redirect(`${process.env.Client_SIDE_BASE_URL}/login`);
+  // Note: You should not use `res.send` after `res.redirect` as it will not be executed.
 }
 
+module.exports = {
+  googleAuth,
+  googleCallback,
+  googleFailure
+};

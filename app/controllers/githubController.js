@@ -1,8 +1,9 @@
 const passport = require('passport');
 
-function githubAuth(req, res) {
-    passport.authenticate('github', {scope: ['user:email']})(req, res);
+function githubAuth(req, res, next) {
+    passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
 }
+
 
 function githubCallback(req, res, next) {
     passport.authenticate('github', {failureRedirect: '/login'})(req, res, next);

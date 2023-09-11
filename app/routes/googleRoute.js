@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
-const { isLoggedIn } = require('../middleware/authenticationMiddleware').default;
+const googleController = require('../controllers/googleController');
+const authenticationMiddleware = require('../middleware/authenticationMiddleware');
 
-
-router.get('/auth/google', authController.googleAuth);
-router.get('/google/callback', authController.googleCallback);
-router.get('/auth/google/failure', isLoggedIn, authController.googleFailure);
-
+router.get('/auth/google', googleController.googleAuth);
+router.get('/auth/google/callback', googleController.googleCallback);
+router.get('/auth/google/failure', authenticationMiddleware.isLoggedIn, googleController.googleFailure);
 
 module.exports = router;
