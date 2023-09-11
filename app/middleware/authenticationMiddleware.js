@@ -5,4 +5,8 @@ function isLoggedIn(req, res, next) {
     res.sendStatus(401);
   }
   
-  export default { isLoggedIn };
+
+  
+module.exports = {
+  isLoggedIn
+};
