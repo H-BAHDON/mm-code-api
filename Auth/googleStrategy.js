@@ -1,12 +1,15 @@
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const db = require('../config/db/db'); // Import your database configuration
 
-const GOOGLE_CLIENT_ID = "617409105699-u5senri6ujm3b655n5gkb0g6f7r8r5j1.apps.googleusercontent.com";
-const GOOGLE_CLIENT_SECRET = "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";
+// const GOOGLE_CLIENT_ID = "617409105699-u5senri6ujm3b655n5gkb0g6f7r8r5j1.apps.googleusercontent.com";
+// const GOOGLE_CLIENT_SECRET = "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";
+
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 const googleStrategy = new GoogleStrategy({
-  clientID: GOOGLE_CLIENT_ID,
-  clientSecret: GOOGLE_CLIENT_SECRET,
+  clientID: googleClientId,
+  clientSecret: googleClientSecret,
   callbackURL: `https://mm-code-api-b4f2aff44087.herokuapp.com/auth/google/callback`,
   passReqToCallback: true,
 },function(request, accessToken, refreshToken, profile, done) {
