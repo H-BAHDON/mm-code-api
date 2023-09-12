@@ -1,4 +1,4 @@
-const db = require('../../config/db');
+const db = require('../../config/db/db');
 function platform(req, res) {
   req.session.randomValue = Math.random();
   const storedRandomValue = req.session.randomValue;
