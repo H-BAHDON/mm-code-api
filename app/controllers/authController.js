@@ -9,16 +9,24 @@ function platform(req, res) {
 
 function getUser(req, res) {
   if (req.isAuthenticated()) {
-      const userData = {
-          displayName: req.user.displayName,
-          email: req.user.email,
-      };
-      req.session.userData = userData;
-      res.json(userData);
+    let displayName = req.user.displayName; // Default to GitHub's display name
+    if (req.user.accounts === 'Google') {
+      // For Google authentication, use the display name directly from the profile
+      displayName = req.user.displayName;
+    }
+    
+    const userData = {
+      displayName: displayName,
+      email: req.user.email,
+    };
+
+    req.session.userData = userData;
+    res.json(userData);
   } else {
-      res.status(401).json({ error: 'Not authenticated' });
+    res.status(401).json({ error: 'Not authenticated' });
   }
 }
+
 
 function checkSession(req, res) {
   try {
