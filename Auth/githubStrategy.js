@@ -12,6 +12,8 @@ const githubStrategy = new GitHubStrategy({
   },
   async function (accessToken, refreshToken, profile, done) {
     try {
+      console.log("GitHub profile:", profile);
+
       const githubId = profile.id.toString(); // Convert to string
       const username = profile.username;
       const email = profile.email;
