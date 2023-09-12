@@ -1,4 +1,3 @@
-// authRoutes.js
 
 function platform(req, res) {
   req.session.randomValue = Math.random();
@@ -34,10 +33,8 @@ function checkSession(req, res) {
 }
 
 function logout(req, res) {
-  if (req.isAuthenticated()) {
-      return next();
-  }
-  res.sendStatus(401);
+  req.logout();
+  res.status(200).json({ success : true });
 }
 
 module.exports = {
