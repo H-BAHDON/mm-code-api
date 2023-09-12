@@ -9,19 +9,24 @@ function platform(req, res) {
 
 function getUser(req, res) {
   if (req.isAuthenticated()) {
-    let displayName = req.user.displayName; // Default to GitHub's display name
-    if (req.user.accounts === 'Google') {
-      // For Google authentication, use the display name directly from the profile
-      displayName = req.user.displayName;
-    }
-    
-    const userData = {
-      displayName: displayName,
-      email: req.user.email,
-    };
-
-    req.session.userData = userData;
-    res.json(userData);
+    // Assuming you have a function to retrieve user data from the database
+    const userId = req.user.id; // Assuming you have a unique identifier for users
+    db.query('SELECT full_name, email FROM users WHERE id = $1', [userId])
+      .then(result => {
+        if (result.rows.length === 0) {
+          res.status(404).json({ error: 'User not found in the database' });
+        } else {
+          const userData = {
+            displayName: result.rows[0].full_name,
+            email: result.rows[0].email,
+          };
+          res.json(userData);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching user data from the database:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      });
   } else {
     res.status(401).json({ error: 'Not authenticated' });
   }
