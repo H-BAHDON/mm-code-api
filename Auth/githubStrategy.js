@@ -13,7 +13,7 @@ const githubStrategy = new GitHubStrategy({
 async function (accessToken, refreshToken, profile, done) {
   try {
     const githubId = profile.id.toString(); // Convert to string
-    const username = profile.username;
+    const displayname = profile.displayname;
     // Check if there are emails in the profile and extract the first one
     const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
     const accountProvider = "GitHub"; // Specify the account provider
@@ -28,7 +28,7 @@ async function (accessToken, refreshToken, profile, done) {
 
     // Execute the query with parameters
     const result = await db.query(query, [
-      username,
+      displayname,
       email,
       accountProvider,
       0, // Initial values
