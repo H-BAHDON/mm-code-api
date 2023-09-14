@@ -3,7 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 // const { isLoggedIn } = require('../middleware/authenticationMiddleware');
 
-
+router.get('/', authController.homePage)
 router.get('/platform', authController.platform);
 router.get('/user', authController.getUser);
 // router.get('/protected', isLoggedIn, authController.protected);

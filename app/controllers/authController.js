@@ -7,6 +7,10 @@ function platform(req, res) {
   res.send('Welcome to the platform');
 }
 
+function homePage(req, res) {
+  res.send("Home page running well.")
+}
+
 function getUser(req, res) {
   if (req.isAuthenticated()) {
     const userId = req.user.id; // Assuming you have a unique identifier for users
@@ -59,6 +63,7 @@ function logout(req, res) {
 }
 
 module.exports = {
+  homePage,
   platform,
   getUser,
   checkSession,
