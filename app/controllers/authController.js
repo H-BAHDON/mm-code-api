@@ -39,6 +39,7 @@ async function saveScore(req, res) {
 }
 
 
+
 function getUser(req, res) {
   if (req.isAuthenticated()) {
     const userId = req.user.id; // Assuming you have a unique identifier for users
