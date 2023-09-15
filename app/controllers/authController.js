@@ -25,25 +25,24 @@ async function handleScore(req, res) {
 async function saveScore(req, res) {
   try {
     const { score } = req.body;
-    console.log(`Received score: ${score}`);
 
-    // Check if the user is authenticated
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
+    if (req.isAuthenticated()) {
+      if (!isNaN(score)) {
+        const userId = req.user.id; // Assuming you have a unique identifier for users
+        const query = 'UPDATE users SET total_score = total_score + $1 WHERE id = $2';
+        console.log('SQL Query:', query);
 
-    const userId = req.user.id; // Assuming you have a unique identifier for users
+        await db.query(query, [score, userId]);
 
-    if (!isNaN(score)) {
-      const query = 'UPDATE users SET total_score = total_score + $1 WHERE id = $2';
-      console.log('SQL Query:', query);
-
-      await db.query(query, [score, userId]);
-
-      res.json({ message: 'Score saved successfully' });
+        console.log('Score saved successfully');
+        res.json({ message: 'Score saved successfully' });
+      } else {
+        console.log('Invalid score value');
+        res.status(400).json({ error: 'Invalid score value' });
+      }
     } else {
-      // Handle invalid score
-      res.status(400).json({ error: 'Invalid score value' });
+      console.log('Not authenticated');
+      res.status(401).json({ error: 'Not authenticated' });
     }
   } catch (error) {
     console.error('Error saving score:', error);
