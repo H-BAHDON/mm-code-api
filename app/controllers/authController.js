@@ -28,11 +28,11 @@ async function saveScore(req, res) {
 
     if (req.isAuthenticated()) {
       if (!isNaN(score)) {
-        const userId = req.user.id; // Assuming you have a unique identifier for users
-        const query = 'UPDATE users SET total_score = total_score + $1 WHERE id = $2';
+        const userEmail = req.user.email; // Get the user's email
+        const query = 'UPDATE users SET total_score = total_score + $1 WHERE email = $2'; // Update based on email
         console.log('SQL Query:', query);
 
-        await db.query(query, [score, userId]);
+        await db.query(query, [score, userEmail]);
 
         console.log('Score saved successfully');
         res.json({ message: 'Score saved successfully' });
@@ -41,7 +41,6 @@ async function saveScore(req, res) {
         res.status(400).json({ error: 'Invalid score value' });
       }
     } else {
-      console.log('Not authenticated');
       res.status(401).json({ error: 'Not authenticated' });
     }
   } catch (error) {
