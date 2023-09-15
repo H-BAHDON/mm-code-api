@@ -26,39 +26,33 @@ async function saveScore(req, res) {
   try {
     const { score } = req.body;
 
-    if (req.isAuthenticated()) {
-      if (!isNaN(score)) {
-        const userEmail = req.user.email; // Get the user's email
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
 
-        // Retrieve the user's current total_score from the database
-        const getUserQuery = 'SELECT total_score FROM users WHERE email = $1';
-        const userResult = await db.query(getUserQuery, [userEmail]);
+    const userId = req.user.id; // Assuming you have a unique identifier for users
 
-        if (userResult.rows.length === 0) {
-          console.log('No user found with the specified email');
-          return res.status(404).json({ error: 'User not found' });
-        }
+    // Validate that 'score' is a valid numeric value
+    if (!isNaN(score)) {
+      // Construct the SQL query with the score embedded
+      const query = 'UPDATE users SET total_score = total_score + $1 WHERE id = $2';
+      console.log('SQL Query:', query);
 
-        const currentTotalScore = userResult.rows[0].total_score;
+      await db.query(query, [score, userId]);
 
-        // Update the user's total_score in the database
-        const updateScoreQuery = 'UPDATE users SET total_score = $1 WHERE email = $2';
-        await db.query(updateScoreQuery, [currentTotalScore + score, userEmail]);
-
-        console.log('Score saved successfully');
-        res.json({ message: 'Score saved successfully' });
-      } else {
-        console.log('Invalid score value');
-        res.status(400).json({ error: 'Invalid score value' });
-      }
+      console.log('Score saved successfully');
+      res.json({ message: 'Score saved successfully' });
     } else {
-      res.status(401).json({ error: 'Not authenticated' });
+      // Handle invalid score
+      console.log('Invalid score value');
+      res.status(400).json({ error: 'Invalid score value' });
     }
   } catch (error) {
     console.error('Error saving score:', error);
     res.status(500).json({ error: 'Error saving score' });
   }
 }
+
 
 
 
