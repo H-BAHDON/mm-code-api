@@ -27,8 +27,8 @@ async function saveScore(req, res) {
     const { score } = req.body;
     console.log(`Received score: ${score}`);
 
-    // Insert the score into your database table
     const query = 'INSERT INTO users (total_score) VALUES (?)';
+    console.log('SQL Query:', query);
     await db.query(query, [score]);
 
     res.json({ message: 'Score saved successfully' });
@@ -37,6 +37,7 @@ async function saveScore(req, res) {
     res.status(500).json({ error: 'Error saving score' });
   }
 }
+
 
 
 
