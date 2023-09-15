@@ -27,16 +27,19 @@ async function saveScore(req, res) {
     const { score } = req.body;
     console.log(`Received score: ${score}`);
 
-    const query = 'INSERT INTO users (total_score) VALUES (?)';
-    console.log('SQL Query:', query);
+    // Validate that 'score' is a valid numeric value
+    if (!isNaN(score)) {
+      // Construct the SQL query with the score embedded
+      const query = `INSERT INTO users (total_score) VALUES (${score})`;
+      console.log('SQL Query:', query);
 
-    // Attempt to execute the SQL query
-    const result = await db.query(query, [score]);
+      await db.query(query);
 
-    // Check the result and log it
-    console.log('Query Result:', result);
-
-    res.json({ message: 'Score saved successfully' });
+      res.json({ message: 'Score saved successfully' });
+    } else {
+      // Handle invalid score
+      res.status(400).json({ error: 'Invalid score value' });
+    }
   } catch (error) {
     console.error('Error saving score:', error);
     res.status(500).json({ error: 'Error saving score' });
