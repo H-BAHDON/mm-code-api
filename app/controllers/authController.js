@@ -34,9 +34,7 @@ async function saveScore(req, res) {
 
     const userId = req.user.id; // Assuming you have a unique identifier for users
 
-    // Validate that 'score' is a valid numeric value
     if (!isNaN(score)) {
-      // Construct the SQL query to update the user's total_score
       const query = 'UPDATE users SET total_score = total_score + $1 WHERE id = $2';
       console.log('SQL Query:', query);
 
@@ -52,6 +50,7 @@ async function saveScore(req, res) {
     res.status(500).json({ error: 'Error saving score' });
   }
 }
+
 
 
 
