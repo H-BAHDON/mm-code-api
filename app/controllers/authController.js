@@ -32,10 +32,15 @@ async function saveScore(req, res) {
         const query = 'UPDATE users SET total_score = total_score + $1 WHERE email = $2'; // Update based on email
         console.log('SQL Query:', query);
 
-        await db.query(query, [score, userEmail]);
+        const result = await db.query(query, [score, userEmail]);
 
-        console.log('Score saved successfully');
-        res.json({ message: 'Score saved successfully' });
+        if (result.rowCount === 1) {
+          console.log('Score saved successfully');
+          res.json({ message: 'Score saved successfully' });
+        } else {
+          console.log('No user found with the specified email');
+          res.status(404).json({ error: 'User not found' });
+        }
       } else {
         console.log('Invalid score value');
         res.status(400).json({ error: 'Invalid score value' });
@@ -48,6 +53,7 @@ async function saveScore(req, res) {
     res.status(500).json({ error: 'Error saving score' });
   }
 }
+
 
 
 
