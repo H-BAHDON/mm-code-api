@@ -14,9 +14,20 @@ function homePage(req, res) {
 }
 
 
-function handleScore (req, res){
-  res.send("score is created");
+async function handleScore(req, res) {
+  try {
+    const { score } = req.body;
+    console.log(`Received score: ${score}`);
 
+    // Insert the score into your database table
+    const query = 'INSERT INTO users (total_score) VALUES (?)';
+    await db.query(query, [score]);
+
+    res.json({ message: 'Score saved successfully' });
+  } catch (error) {
+    console.error('Error saving score:', error);
+    res.status(500).json({ error: 'Error saving score' });
+  }
 }
 
 

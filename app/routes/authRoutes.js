@@ -5,6 +5,7 @@ const authController = require('../controllers/authController');
 
 router.get('/', authController.homePage)
 router.get('/score', authController.handleScore)
+router.post('/save-score', authController.handleScore);
 router.get('/platform', authController.platform);
 router.get('/user', authController.getUser);
 // router.get('/protected', isLoggedIn, authController.protected);
