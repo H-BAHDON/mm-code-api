@@ -16,6 +16,14 @@ function homePage(req, res) {
 
 async function handleScore(req, res) {
   try {
+  } catch (error) {
+    console.error('Error handling score:', error);
+    res.status(500).json({ error: 'Error handling score' });
+  }
+}
+
+async function saveScore(req, res) {
+  try {
     const { score } = req.body;
     console.log(`Received score: ${score}`);
 
@@ -29,7 +37,6 @@ async function handleScore(req, res) {
     res.status(500).json({ error: 'Error saving score' });
   }
 }
-
 
 
 function getUser(req, res) {
@@ -90,4 +97,5 @@ module.exports = {
   checkSession,
   logout,
   handleScore,
+  saveScore,
 };
