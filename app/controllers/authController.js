@@ -29,18 +29,24 @@ async function saveScore(req, res) {
     if (req.isAuthenticated()) {
       if (!isNaN(score)) {
         const userEmail = req.user.email; // Get the user's email
-        const query = 'UPDATE users SET total_score = total_score + $1 WHERE email = $2'; // Update based on email
-        console.log('SQL Query:', query);
 
-        const result = await db.query(query, [score, userEmail]);
+        // Retrieve the user's current total_score from the database
+        const getUserQuery = 'SELECT total_score FROM users WHERE email = $1';
+        const userResult = await db.query(getUserQuery, [userEmail]);
 
-        if (result.rowCount === 1) {
-          console.log('Score saved successfully');
-          res.json({ message: 'Score saved successfully' });
-        } else {
+        if (userResult.rows.length === 0) {
           console.log('No user found with the specified email');
-          res.status(404).json({ error: 'User not found' });
+          return res.status(404).json({ error: 'User not found' });
         }
+
+        const currentTotalScore = userResult.rows[0].total_score;
+
+        // Update the user's total_score in the database
+        const updateScoreQuery = 'UPDATE users SET total_score = $1 WHERE email = $2';
+        await db.query(updateScoreQuery, [currentTotalScore + score, userEmail]);
+
+        console.log('Score saved successfully');
+        res.json({ message: 'Score saved successfully' });
       } else {
         console.log('Invalid score value');
         res.status(400).json({ error: 'Invalid score value' });
@@ -53,6 +59,7 @@ async function saveScore(req, res) {
     res.status(500).json({ error: 'Error saving score' });
   }
 }
+
 
 
 
