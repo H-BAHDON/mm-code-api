@@ -9,7 +9,17 @@ function platform(req, res) {
 
 function homePage(req, res) {
   res.send("Home page running well.")
+// query db
+  // handleScore(req, res);
 }
+
+
+function handleScore (req, res){
+  res.send("score is created");
+
+}
+
+
 
 function getUser(req, res) {
   if (req.isAuthenticated()) {
@@ -68,4 +78,5 @@ module.exports = {
   getUser,
   checkSession,
   logout,
+  handleScore,
 };
