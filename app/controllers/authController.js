@@ -1,5 +1,4 @@
 const db = require('../../config/db/db');
-const { updateUserScore } = require('../../Auth/googleStrategy');
 function platform(req, res) {
   req.session.randomValue = Math.random();
   const storedRandomValue = req.session.randomValue;
@@ -33,12 +32,17 @@ async function saveScore(req, res) {
 
     const userEmail = req.user.email;
 
+    // Validate that 'score' is a valid numeric value
     if (!isNaN(score)) {
-      await updateUserScore(userEmail, score);
+      // Construct the SQL query with the score embedded
+      const query = 'UPDATE users SET total_score = total_score + $1 WHERE email = $2';
+
+      await db.query(query, [score, userEmail]);
 
       console.log('Score saved successfully');
       res.json({ message: 'Score saved successfully' });
     } else {
+      // Handle invalid score
       console.log('Invalid score value');
       res.status(400).json({ error: 'Invalid score value' });
     }
