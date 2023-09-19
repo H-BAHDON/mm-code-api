@@ -26,19 +26,33 @@ async function saveScore(req, res) {
   try {
     const { score } = req.body;
 
-    if (!req.isAuthenticated()) {
+    // Check session to verify authentication
+    const sessionCheckResponse = await checkSession(req);
+
+    if (sessionCheckResponse.status === 401) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
     const userId = req.user.id; // Assuming you have a unique identifier for users
 
+    // Retrieve the user's email using a database query
+    const userQuery = 'SELECT email FROM users WHERE id = $1';
+    const userResult = await db.query(userQuery, [userId]);
+
+    if (userResult.rows.length === 0) {
+      console.error('User not found in the database');
+      return res.status(500).json({ error: 'User not found in the database' });
+    }
+
+    const userEmail = userResult.rows[0].email;
+
     // Validate that 'score' is a valid numeric value
     if (!isNaN(score)) {
       // Construct the SQL query with the score embedded
-      const query = 'UPDATE users SET total_score = total_score + $1 WHERE id = $2';
+      const query = 'UPDATE users SET total_score = total_score + $1 WHERE email = $2';
       console.log('SQL Query:', query);
 
-      await db.query(query, [score, userId]);
+      await db.query(query, [score, userEmail]);
 
       console.log('Score saved successfully');
       res.json({ message: 'Score saved successfully' });
@@ -50,6 +64,18 @@ async function saveScore(req, res) {
   } catch (error) {
     console.error('Error saving score:', error);
     res.status(500).json({ error: 'Error saving score' });
+  }
+}
+
+async function checkSession(req) {
+  try {
+    if (req.isAuthenticated()) {
+      return { status: 200 };
+    } else {
+      return { status: 401 };
+    }
+  } catch (e) {
+    return { status: 500 };
   }
 }
 
