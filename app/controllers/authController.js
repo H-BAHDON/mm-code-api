@@ -26,10 +26,7 @@ async function saveScore(req, res) {
   try {
     const { score } = req.body;
 
-    // Check session to verify authentication
-    const sessionCheckResponse = await checkSession(req);
-
-    if (sessionCheckResponse.status === 401) {
+    if (!req.isAuthenticated()) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
@@ -66,24 +63,6 @@ async function saveScore(req, res) {
     res.status(500).json({ error: 'Error saving score' });
   }
 }
-
-async function checkSession(req) {
-  try {
-    if (req.isAuthenticated()) {
-      return { status: 200 };
-    } else {
-      return { status: 401 };
-    }
-  } catch (e) {
-    return { status: 500 };
-  }
-}
-
-
-
-
-
-
 
 
 function getUser(req, res) {
