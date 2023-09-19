@@ -8,14 +8,14 @@ function githubAuth(req, res, next) {
 function githubCallback(req, res, next){
     passport.authenticate('github', { failureRedirect: '/login' })(req, res, function() {
       console.log("GitHub authentication successful:", req.user);
-      res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
+      res.redirect(`http://localhost:3001/platform`);
     });
   }
 
 
 function githubSuccess(req, res) {
     console.log("GitHub authentication successful:", req.user);
-    res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
+    res.redirect(`http://localhost:3001/platform`);
 }
 
 function getGitHubUser(req, res) {

@@ -6,7 +6,7 @@ const db = require('../config/db/db'); // Import your database configuration
 const githubStrategy = new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: `https://mm-code-api-b4f2aff44087.herokuapp.com/auth/github/callback`,
+  callbackURL: `${process.env.REACT_APP_API_URL}/auth/github/callback`,
   scope: ['user:email'],
 },
 async function (accessToken, refreshToken, profile, done) {

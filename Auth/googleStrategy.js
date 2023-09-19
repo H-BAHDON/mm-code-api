@@ -4,7 +4,7 @@ const db = require('../config/db/db'); // Import your database configuration
 const googleStrategy = new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `https://mm-code-api-b4f2aff44087.herokuapp.com/auth/google/callback`,
+  callbackURL: `${process.env.REACT_APP_API_URL}/auth/google/callback`,
   passReqToCallback: true,
 }, function (request, accessToken, refreshToken, profile, done) {
 
