@@ -1,4 +1,5 @@
 const db = require('../../config/db/db');
+const { updateUserScore } = require('../../Auth/googleStrategy');
 function platform(req, res) {
   req.session.randomValue = Math.random();
   const storedRandomValue = req.session.randomValue;
@@ -30,31 +31,14 @@ async function saveScore(req, res) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const userId = req.user.id; // Assuming you have a unique identifier for users
+    const userEmail = req.user.email;
 
-    // Retrieve the user's email using a database query
-    const userQuery = 'SELECT email FROM users WHERE id = $1';
-    const userResult = await db.query(userQuery, [userId]);
-
-    if (userResult.rows.length === 0) {
-      console.error('User not found in the database');
-      return res.status(500).json({ error: 'User not found in the database' });
-    }
-
-    const userEmail = userResult.rows[0].email;
-
-    // Validate that 'score' is a valid numeric value
     if (!isNaN(score)) {
-      // Construct the SQL query with the score embedded
-      const query = 'UPDATE users SET total_score = total_score + $1 WHERE email = $2';
-      console.log('SQL Query:', query);
-
-      await db.query(query, [score, userEmail]);
+      await updateUserScore(userEmail, score);
 
       console.log('Score saved successfully');
       res.json({ message: 'Score saved successfully' });
     } else {
-      // Handle invalid score
       console.log('Invalid score value');
       res.status(400).json({ error: 'Invalid score value' });
     }
