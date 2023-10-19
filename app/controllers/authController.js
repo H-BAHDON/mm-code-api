@@ -1,4 +1,6 @@
 const db = require('../../config/db/db');
+const { verifyToken, generateToken } = require('../controllers/tokens'); // Import your verifyToken function
+
 function platform(req, res) {
   req.session.randomValue = Math.random();
   const storedRandomValue = req.session.randomValue;
@@ -11,6 +13,29 @@ function homePage(req, res) {
   res.send("Home page running well.")
 // query db
   // handleScore(req, res);
+}
+
+async function login(req, res) {
+  try {
+    // Assuming you have user data from Google OAuth in req.user object
+    const { displayName, email } = req.user;
+
+    // Generate a token
+    const token = generateToken({ displayName, email }); // Customize this based on your user data
+
+    // Set the token in the response cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours expiration
+      sameSite: 'none',
+    });
+
+    res.json({ message: 'User authenticated', token });
+  } catch (error) {
+    console.error('Error authenticating user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }
 
 
@@ -29,20 +54,14 @@ async function saveScore(req, res) {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
-
     const userEmail = req.user.email;
 
-    // Validate that 'score' is a valid numeric value
     if (!isNaN(score)) {
-      // Construct the SQL query with the score embedded
       const query = 'UPDATE users SET total_score = total_score + $1 WHERE email = $2';
-
       await db.query(query, [score, userEmail]);
-
       console.log('Score saved successfully');
       res.json({ message: 'Score saved successfully' });
     } else {
-      // Handle invalid score
       console.log('Invalid score value');
       res.status(400).json({ error: 'Invalid score value' });
     }
@@ -55,7 +74,7 @@ async function saveScore(req, res) {
 
 function getUser(req, res) {
   if (req.isAuthenticated()) {
-    const userId = req.user.id; // Assuming you have a unique identifier for users
+    const userId = req.user.id; 
     db.query('SELECT full_name, email FROM users WHERE id = $1', [userId])
       .then(result => {
         if (result.rows.length === 0) {
@@ -88,16 +107,23 @@ function getUser(req, res) {
 
 
 function checkSession(req, res) {
-  try {
-      if (req.isAuthenticated()) {
-          res.sendStatus(200);
-      } else {
-          res.sendStatus(401);
-      }
-  } catch (e) {
-      return res.status(500).json({ msg: "Error found" });
+  const token = req.cookies.session; // Assuming the token is stored in a cookie named 'token'
+
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
+
+  const decodedToken = verifyToken(token);
+
+  if (!decodedToken) {
+    // Invalid or expired token
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // Token is valid, user is authenticated
+  return res.status(200).json({ message: 'User is authenticated' });
 }
+
 
 function logout(req, res) {
   req.logout();
@@ -112,4 +138,5 @@ module.exports = {
   logout,
   handleScore,
   saveScore,
+  login
 };
