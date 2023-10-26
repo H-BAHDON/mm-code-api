@@ -74,31 +74,12 @@ async function saveScore(req, res) {
 
 function getUser(req, res) {
   if (req.isAuthenticated()) {
-    const userId = req.user.id; 
-    db.query('SELECT full_name, email FROM users WHERE id = $1', [userId])
-      .then(result => {
-        if (result.rows.length === 0) {
-          // User not found in the database, use backup method
-          const userData = {
-            displayName: req.user.displayName || req.user.username, // Use username if displayName is not available
-            email: req.user.email,
-          };
-          req.session.userData = userData;
-          res.json(userData);
-        } else {
-          // User found in the database
-          const userData = {
-            displayName: result.rows[0].full_name,
-            email: result.rows[0].email,
-          };
-          req.session.userData = userData;
-          res.json(userData);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching user data from the database:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      });
+    const userData = {
+      displayName: req.user.displayName || req.user.username,
+      email: req.user.email,
+    };
+    req.session.userData = userData;
+    res.json({ message: 'User authenticated', userData });
   } else {
     res.status(401).json({ error: 'Not authenticated' });
   }

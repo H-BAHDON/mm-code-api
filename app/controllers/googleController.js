@@ -1,6 +1,6 @@
 const passport = require("passport");
 const jwt = require('jsonwebtoken');
-
+const secretKey = 'melly'; 
 function googleAuth(req, res) {
   passport.authenticate('google', { scope: ['email', 'profile'] })(req, res);
 }
@@ -19,7 +19,7 @@ function googleCallback(req, res, next) {
     }
 
     // Generate a JWT token
-    const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign(user, secretKey, { expiresIn: '24h' });
 
     // Set the token in an HTTP-only cookie
     res.cookie('token', token, {
