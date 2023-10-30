@@ -18,7 +18,7 @@ const googleStrategy = new GoogleStrategy({
 
     if (result.rows.length === 0) {
       const insertUserQuery = 'INSERT INTO users (full_name, email, accounts) VALUES ($1, $2, $3)';
-      const insertUserValues = [profile.displayName, profile.emails[0].value, 'Google']; // Set the account provider to 'Google'
+      const insertUserValues = [profile.displayName, profile.emails[0].value, 'Google']; 
 
       db.query(insertUserQuery, insertUserValues, (err) => {
         if (err) {

@@ -21,7 +21,6 @@ passport.use(GithubStrategy);
 
 app.set('view engine', 'ejs');
 app.use(cookieParser());
-
 app.use(
   cors({
     origin: ['https://www.mmcode.io', 'http://localhost:3000'], 
@@ -47,18 +46,15 @@ app.set('trust proxy', 1);
 app.use(passport.initialize());
 app.use(passport.session());
 
-
-
-
 passport.serializeUser((user, done) => {
+  // Serialize the user to the session
   done(null, user);
 });
 
 passport.deserializeUser((user, done) => {
+  // Deserialize the user from the session
   done(null, user);
 });
-
-
 
 
 app.use('/', authRoutes);

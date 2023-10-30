@@ -1,6 +1,5 @@
 const db = require('../../config/db/db');
 const { verifyToken, generateToken } = require('../controllers/tokens'); 
-const passport = require('passport');
 
 function platform(req, res) {
   req.session.randomValue = Math.random();
@@ -69,11 +68,12 @@ async function saveScore(req, res) {
 
 function getUser(req, res) {
   if (req.isAuthenticated()) {
+    console.log(req.user);
+
     const userData = {
-      displayName: req.user.displayName || req.user.username,
+      displayName: req.user.displayName || req.user.username || req.user.fullName,
       email: req.user.email,
     };
-    console.log(req.user);
 
     req.session.userData = userData;
     res.json({ message: 'User authenticated', userData });
