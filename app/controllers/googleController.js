@@ -14,22 +14,18 @@ function googleCallback(req, res, next) {
       return next(err);
     }
     if (!user) {
-      // Handle authentication failure
       return res.redirect(`${process.env.Client_SIDE_BASE_URL}/login`);
     }
 
-    // Generate a JWT token
     const token = jwt.sign(user, secretKey, { expiresIn: '24h' });
 
-    // Set the token in an HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours expiration
+      maxAge: 24 * 60 * 60 * 1000, 
       sameSite: 'none',
     });
 
-    // Redirect to the desired page after successful login
     return res.redirect(`${process.env.Client_SIDE_BASE_URL}/platform`);
   })(req, res, next);
 }

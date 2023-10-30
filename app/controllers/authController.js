@@ -1,5 +1,6 @@
 const db = require('../../config/db/db');
-const { verifyToken, generateToken } = require('../controllers/tokens'); // Import your verifyToken function
+const { verifyToken, generateToken } = require('../controllers/tokens'); 
+const passport = require('passport');
 
 function platform(req, res) {
   req.session.randomValue = Math.random();
@@ -11,23 +12,17 @@ function platform(req, res) {
 
 function homePage(req, res) {
   res.send("Home page running well.")
-// query db
-  // handleScore(req, res);
+
 }
 
 async function login(req, res) {
   try {
-    // Assuming you have user data from Google OAuth in req.user object
     const { displayName, email } = req.user;
-
-    // Generate a token
-    const token = generateToken({ displayName, email }); // Customize this based on your user data
-
-    // Set the token in the response cookie
+    const token = generateToken({ displayName, email }); 
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours expiration
+      maxAge: 24 * 60 * 60 * 1000, 
       sameSite: 'none',
     });
 
@@ -78,6 +73,8 @@ function getUser(req, res) {
       displayName: req.user.displayName || req.user.username,
       email: req.user.email,
     };
+    console.log(req.user);
+
     req.session.userData = userData;
     res.json({ message: 'User authenticated', userData });
   } else {
@@ -88,7 +85,7 @@ function getUser(req, res) {
 
 
 function checkSession(req, res) {
-  const token = req.cookies.session; // Assuming the token is stored in a cookie named 'token'
+  const token = req.cookies.session; 
 
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -97,11 +94,9 @@ function checkSession(req, res) {
   const decodedToken = verifyToken(token);
 
   if (!decodedToken) {
-    // Invalid or expired token
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // Token is valid, user is authenticated
   return res.status(200).json({ message: 'User is authenticated' });
 }
 
