@@ -7,23 +7,22 @@ const passport = require('passport');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 require('dotenv').config();
+const session = require('express-session');
 
 const authRoutes = require('../app/routes/authRoutes');
 const githubRoutes = require('../app/routes/githubRoutes');
 const googleRoutes = require('../app/routes/googleRoute'); 
 
-
 const GoogleStrategy = require('../Auth/googleStrategy'); 
 const GithubStrategy = require('../Auth/githubStrategy'); 
 passport.use(GoogleStrategy);
-
 passport.use(GithubStrategy);
 
 app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ['https://www.mmcode.io', 'http://localhost:3000'], 
+    origin: ['http://localhost:3000'], 
     methods: ['GET', 'POST'],
     credentials: true,
   })
@@ -42,22 +41,33 @@ app.use(
     secure: true,
   })
 );
+
 app.set('trust proxy', 1);
+
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.serializeUser((user, done) => {
-  // Serialize the user to the session
+passport.serializeUser(function(user, done) {
+  // Store user information in session
   done(null, user);
 });
 
-passport.deserializeUser((user, done) => {
-  // Deserialize the user from the session
-  done(null, user);
+passport.deserializeUser(function(id, done) {
+  // Query your database using the provided user ID
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
 });
 
-
+// Define routes
 app.use('/', authRoutes);
 app.use('/', githubRoutes);
 app.use('/', googleRoutes); 
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something went wrong!');
+});
+
 module.exports = app; 

@@ -1,6 +1,7 @@
 const db = require('../../config/db/db');
 const { verifyToken, generateToken } = require('../controllers/tokens'); 
-
+const jwt = require('jsonwebtoken');
+const secretKey = 'melly';
 function platform(req, res) {
   req.session.randomValue = Math.random();
   const storedRandomValue = req.session.randomValue;
@@ -16,89 +17,65 @@ function homePage(req, res) {
 
 async function login(req, res) {
   try {
-    const { displayName, email } = req.user;
-    const token = generateToken({ displayName, email }); 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000, 
-      sameSite: 'none',
-    });
+    // Authenticate the user, validate credentials, etc.
+    const { username, password } = req.body;
 
-    res.json({ message: 'User authenticated', token });
+    // Check user credentials (this is just an example, replace it with your authentication logic)
+    if (username === 'user' && password === 'password') {
+      // Generate a JSON web token (JWT) for the authenticated user
+      const token = jwt.sign({ username }, secretKey, { expiresIn: '24h' });
+
+      // Send the token to the client
+      res.json({ message: 'User authenticated', token });
+    } else {
+      // If authentication fails, send an error response
+      res.status(401).json({ error: 'Invalid credentials' });
+    }
   } catch (error) {
+    // Handle errors, log them, and send an error response
     console.error('Error authenticating user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
 
 
-async function handleScore(req, res) {
-  try {
-  } catch (error) {
-    console.error('Error handling score:', error);
-    res.status(500).json({ error: 'Error handling score' });
-  }
-}
-
-async function saveScore(req, res) {
-  try {
-    const { score } = req.body;
-
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-    const userEmail = req.user.email;
-
-    if (!isNaN(score)) {
-      const query = 'UPDATE users SET total_score = total_score + $1 WHERE email = $2';
-      await db.query(query, [score, userEmail]);
-      console.log('Score saved successfully');
-      res.json({ message: 'Score saved successfully' });
-    } else {
-      console.log('Invalid score value');
-      res.status(400).json({ error: 'Invalid score value' });
-    }
-  } catch (error) {
-    console.error('Error saving score:', error);
-    res.status(500).json({ error: 'Error saving score' });
-  }
-}
-
 
 function getUser(req, res) {
-  if (req.isAuthenticated()) {
-    console.log(req.user);
+  console.log('Session:', req.session); // Log session information
+  console.log('Authenticated:', req.isAuthenticated()); // Log if the user is authenticated
+  console.log('User:', req.user); // Log the user object from the request
 
-    const userData = {
+  if (req.isAuthenticated()) {
+    console.log('Authenticated User:', req.user); 
+    const userData = { 
       displayName: req.user.displayName || req.user.username || req.user.fullName,
       email: req.user.email,
     };
-
-    req.session.userData = userData;
     res.json({ message: 'User authenticated', userData });
   } else {
+    console.error('Authentication Error:', req.user); 
     res.status(401).json({ error: 'Not authenticated' });
   }
 }
 
 
 
-function checkSession(req, res) {
-  const token = req.cookies.session; 
 
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+// function checkSession(req, res) {
+//   const token = req.cookies.session; 
 
-  const decodedToken = verifyToken(token);
+//   if (!token) {
+//     return res.status(401).json({ error: 'Unauthorized' });
+//   }
 
-  if (!decodedToken) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+//   const decodedToken = verifyToken(token);
 
-  return res.status(200).json({ message: 'User is authenticated' });
-}
+//   if (!decodedToken) {
+//     return res.status(401).json({ error: 'Unauthorized' });
+//   }
+
+//   return res.status(200).json({ message: 'User is authenticated' });
+// }
 
 
 function logout(req, res) {
@@ -110,9 +87,6 @@ module.exports = {
   homePage,
   platform,
   getUser,
-  checkSession,
   logout,
-  handleScore,
-  saveScore,
   login
 };

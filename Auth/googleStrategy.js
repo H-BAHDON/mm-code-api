@@ -1,10 +1,15 @@
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const db = require('../config/db/db'); // Import your database configuration
+const passport = require('passport');
+
+const GOOGLE_CLIENT_SECRET="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"
+const GOOGLE_CLIENT_ID="617409105699-u5senri6ujm3b655n5gkb0g6f7r8r5j1.apps.googleusercontent.com"
+
 
 const googleStrategy = new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `${process.env.REACT_APP_API_URL}/auth/google/callback`,
+  clientID: GOOGLE_CLIENT_ID,
+  clientSecret: GOOGLE_CLIENT_SECRET,
+  callbackURL: `http://localhost:3001/auth/google/callback`,
   passReqToCallback: true,
 }, function (request, accessToken, refreshToken, profile, done) {
 
@@ -43,5 +48,15 @@ const googleStrategy = new GoogleStrategy({
   });
 });
 
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(id, done) {
+  // Query your database using the provided user ID
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
+});
 
 module.exports = googleStrategy;
