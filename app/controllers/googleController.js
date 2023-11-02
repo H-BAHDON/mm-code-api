@@ -1,6 +1,7 @@
 const passport = require("passport");
 const jwt = require('jsonwebtoken');
-const secretKey = 'melly'; 
+const secretKey = process.env.SECRET_KEY;
+
 function googleAuth(req, res) {
   passport.authenticate('google', { scope: ['email', 'profile'] })(req, res);
 }

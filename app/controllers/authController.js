@@ -1,7 +1,7 @@
 const db = require('../../config/db/db');
 const { verifyToken, generateToken } = require('../controllers/tokens'); 
 const jwt = require('jsonwebtoken');
-const secretKey = 'melly';
+const secretKey = process.env.SECRET_KEY;
 function platform(req, res) {
   req.session.randomValue = Math.random();
   const storedRandomValue = req.session.randomValue;

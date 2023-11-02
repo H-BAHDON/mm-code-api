@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const secretKey = 'melly'; 
+const secretKey = process.env.SECRET_KEY;
 
 function generateToken(user) {
   const token = jwt.sign({ user }, secretKey, { expiresIn: '24h' });
@@ -15,8 +15,8 @@ function verifyToken(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, secretKey); // Replace 'your-secret-key' with your actual secret key used for signing the token
-    req.user = decoded; // The decoded payload is available in req.user
+    const decoded = jwt.verify(token, secretKey); 
+    req.user = decoded; 
     next();
   } catch (error) {
     return res.status(403).json({ error: 'Invalid token.' });

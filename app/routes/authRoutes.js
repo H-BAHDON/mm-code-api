@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const jwt = require('jsonwebtoken');
-const secretKey = 'melly';
+const secretKey = process.env.SECRET_KEY;
 
 router.get('/', authController.homePage);
 
@@ -19,7 +19,7 @@ router.get('/user', (req, res) => {
 
   try {
     // Verify the token
-    const decoded = jwt.verify(token, secretKey);
+    const decoded = jwt.verify(token, secretKey );
 
     // User is authenticated, you can access user data from decoded payload
     const userData = {
