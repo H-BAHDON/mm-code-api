@@ -1,7 +1,7 @@
-const db = require('../../config/db/db');
-const { verifyToken, generateToken } = require('../controllers/tokens'); 
 const jwt = require('jsonwebtoken');
 const secretKey = process.env.SECRET_KEY;
+
+
 function platform(req, res) {
   req.session.randomValue = Math.random();
   const storedRandomValue = req.session.randomValue;
@@ -17,22 +17,16 @@ function homePage(req, res) {
 
 async function login(req, res) {
   try {
-    // Authenticate the user, validate credentials, etc.
     const { username, password } = req.body;
 
-    // Check user credentials (this is just an example, replace it with your authentication logic)
     if (username === 'user' && password === 'password') {
-      // Generate a JSON web token (JWT) for the authenticated user
       const token = jwt.sign({ username }, secretKey, { expiresIn: '24h' });
 
-      // Send the token to the client
       res.json({ message: 'User authenticated', token });
     } else {
-      // If authentication fails, send an error response
       res.status(401).json({ error: 'Invalid credentials' });
     }
   } catch (error) {
-    // Handle errors, log them, and send an error response
     console.error('Error authenticating user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -41,9 +35,9 @@ async function login(req, res) {
 
 
 function getUser(req, res) {
-  console.log('Session:', req.session); // Log session information
-  console.log('Authenticated:', req.isAuthenticated()); // Log if the user is authenticated
-  console.log('User:', req.user); // Log the user object from the request
+  console.log('Session:', req.session); 
+  console.log('Authenticated:', req.isAuthenticated()); 
+  console.log('User:', req.user); 
 
   if (req.isAuthenticated()) {
     console.log('Authenticated User:', req.user); 

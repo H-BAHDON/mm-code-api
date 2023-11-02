@@ -22,7 +22,7 @@ app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ['http://localhost:3000'], 
+    origin: [process.env.CLIENT_SIDE_BASE_URL], 
     methods: ['GET', 'POST'],
     credentials: true,
   })
@@ -49,18 +49,15 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.serializeUser(function(user, done) {
-  // Store user information in session
   done(null, user);
 });
 
 passport.deserializeUser(function(id, done) {
-  // Query your database using the provided user ID
   User.findById(id, function(err, user) {
     done(err, user);
   });
 });
 
-// Define routes
 app.use('/', authRoutes);
 app.use('/', githubRoutes);
 app.use('/', googleRoutes); 

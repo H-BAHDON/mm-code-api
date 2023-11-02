@@ -10,7 +10,6 @@ router.get('/platform', authController.platform);
 router.post('/login', authController.login);
 
 router.get('/user', (req, res) => {
-  // Access the token from the cookie
   const token = req.cookies.token;
 
   if (!token) {
@@ -18,10 +17,7 @@ router.get('/user', (req, res) => {
   }
 
   try {
-    // Verify the token
     const decoded = jwt.verify(token, secretKey );
-
-    // User is authenticated, you can access user data from decoded payload
     const userData = {
       displayName: decoded.displayName || decoded.username || decoded.fullName,
       email: decoded.email,
