@@ -79,6 +79,7 @@ function getUser(req, res) {
 
 
 function logout(req, res) {
+  res.clearCookie('token');
   req.logout();
   res.status(200).json({ success : true });
 }
