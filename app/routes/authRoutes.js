@@ -7,7 +7,6 @@ const secretKey = process.env.SECRET_KEY;
 router.get('/', authController.homePage);
 
 router.get('/platform', authController.platform);
-router.post('/login', authController.login);
 
 router.get('/user', (req, res) => {
   const token = req.cookies.token;
@@ -30,6 +29,24 @@ router.get('/user', (req, res) => {
   }
 });
 
+router.get('/checkSession', (req, res) => {
+  const token = req.cookies.token; 
+
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const decodedToken = jwt.verify(token, secretKey );
+
+  if (!decodedToken) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  return res.status(200).json({ message: 'User is authenticated' });
+})
+
 router.get('/logout', authController.logout);
 
 module.exports = router;
+
+
