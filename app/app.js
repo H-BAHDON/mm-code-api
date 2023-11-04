@@ -22,7 +22,7 @@ app.set('view engine', 'ejs');
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [process.env.CLIENT_SIDE_BASE_URL], 
+    origin: ["https://www.mmcode.io"], 
     methods: ['GET', 'POST'],
     credentials: true,
   })
